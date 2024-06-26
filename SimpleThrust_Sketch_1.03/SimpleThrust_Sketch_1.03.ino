@@ -96,6 +96,8 @@ void setup() {
 // If you are not going to use a specific cell, set the value to -1 
 // In this version, we are only using 6 cells  on pins A0 to A5 so the remaining Cell_Pins are set to -1
 
+//Serial.begin(9600);
+
 
 //not using any battery cells
   Cell_Pins[1] =  -1;
@@ -120,11 +122,11 @@ void setup() {
 // Use the same approach as Thrust if using an HX711
 // If you are not using a specific measurement, set the pin value to -1
 
-  Current_Pin = -1 //A6;  
+  Current_Pin = -1; //A6;  
   Thrust_Uses_HX711 = 1;
   Thrust_Analog_Pin = -1;  
-  Thrust_HX711_Clock_Pin = D5;    //POF: just integer, or DX?
-  Thrust_HX711_Data_Pin = D4;
+  Thrust_HX711_Clock_Pin = 5;    //POF: just integer, or DX?
+  Thrust_HX711_Data_Pin = 4;
     
   Torque_Uses_HX711 =-1;   
   Torque_Analog_Pin_1 = -1;    
@@ -142,20 +144,20 @@ void setup() {
   ESC_Temp_Pin = -1;
   Battery_Temp_Pin = -1;
   
-  Pitot_Pin = -1 //A8;     
+  Pitot_Pin = -1; //A8;     
   Hot_Wire_Pin = -1;
   
-  Throttle_Pin = -1 //A13;  
+  Throttle_Pin = -1; //A13;  
 
 // Assign the interrupt pins for the three available RPM measurements.  
 // If you are not going to use a specific RPM signal set the value to -1
 // Use standard pin numbers (2, 3, etc)
-  RPM_Pin = -1 //2;      // For UNO and MEGA boards
+  RPM_Pin = -1; //2;      // For UNO and MEGA boards
   RPM_ESC_Pin = -1; // Would typically be 3 for UNO and MEGA boards
   RPM_Fan_Pin = -1; // Would typically be 18 for MEGA boards.  A third interrupt is not available on UNO
 
 // Assign the ESC control pin.  This is the pin to which the signal wire from your ESC servo connector is connected
-  ESC_Control_Pin = -1 //7;
+  ESC_Control_Pin = -1; //7;
 
 // Set the Baud rate for communication over the serial port.
 // Ensure to select the matching Baud rate in SimpleThrust when initiating the serial communications through the COM port
@@ -234,14 +236,16 @@ void loop() {
   Message += ",";
   Message += RPM_Fan_New_Timestamp;  // Time at which latest RPM_Fan signal was detected
   Message += ",";
-  Message += RPM_Fan_Interval;       // Time between RPM_Fan signals
+  Message += RPM_Fan_Interval;       // Time between RPM_Fan signals, 7th digit
   Message += ",";    
  
   // Read the analog inputs and add to the string
   // First the 12 cells...
+  /*
   for (int CellCount = 1; CellCount < 13; CellCount++){
     if (Cell_Pins[CellCount] != -1){
       Message += analogRead(Cell_Pins[CellCount]);
+
       Message += ",";
     }
     else{
@@ -249,7 +253,14 @@ void loop() {
       Message += ",";
     }
   }
- 
+  */
+
+ for(int i=0; i<12; i++){
+  Message += 0;
+  Message += ",";
+ }
+
+ //19th digit that was input
   //... then the remaining values
  
   if (Current_Pin != -1)     {Message += analogRead(Current_Pin);     Message += ",";} else {Message += 0; Message += ",";}
@@ -385,6 +396,9 @@ unsigned long GetThrustValue(int Sent_Clock_Pin, int Sent_Data_Pin)
   digitalWrite(Sent_Clock_Pin, LOW);
 
   data[2] ^= 0x80;
+  /*
   return ((uint32_t) data[2] << 16) | ((uint32_t) data[1] << 8)
       | (uint32_t) data[0];
+  */
+   return (((uint32_t) data[2] << 16) | ((uint32_t) data[1] << 8) | (uint32_t) data[0]) - 8470300;
 }
