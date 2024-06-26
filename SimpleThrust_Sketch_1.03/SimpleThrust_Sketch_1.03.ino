@@ -96,12 +96,14 @@ void setup() {
 // If you are not going to use a specific cell, set the value to -1 
 // In this version, we are only using 6 cells  on pins A0 to A5 so the remaining Cell_Pins are set to -1
 
-  Cell_Pins[1] =  A0;
-  Cell_Pins[2] =  A1;
-  Cell_Pins[3] =  A2;
-  Cell_Pins[4] =  A3;
-  Cell_Pins[5] =  A4;
-  Cell_Pins[6] =  A5;
+
+//not using any battery cells
+  Cell_Pins[1] =  -1;
+  Cell_Pins[2] =  -1;
+  Cell_Pins[3] =  -1;
+  Cell_Pins[4] =  -1;
+  Cell_Pins[5] =  -1;
+  Cell_Pins[6] =  -1;
   Cell_Pins[7] =  -1; // A6;
   Cell_Pins[8] =  -1; // A7;
   Cell_Pins[9] =  -1; // A8;
@@ -118,11 +120,11 @@ void setup() {
 // Use the same approach as Thrust if using an HX711
 // If you are not using a specific measurement, set the pin value to -1
 
-  Current_Pin = A6;  
+  Current_Pin = -1 //A6;  
   Thrust_Uses_HX711 = 1;
   Thrust_Analog_Pin = -1;  
-  Thrust_HX711_Clock_Pin = A15;
-  Thrust_HX711_Data_Pin = A14;
+  Thrust_HX711_Clock_Pin = D5;    //POF: just integer, or DX?
+  Thrust_HX711_Data_Pin = D4;
     
   Torque_Uses_HX711 =-1;   
   Torque_Analog_Pin_1 = -1;    
@@ -140,20 +142,20 @@ void setup() {
   ESC_Temp_Pin = -1;
   Battery_Temp_Pin = -1;
   
-  Pitot_Pin = A8;     
+  Pitot_Pin = -1 //A8;     
   Hot_Wire_Pin = -1;
   
-  Throttle_Pin = A13;  
+  Throttle_Pin = -1 //A13;  
 
 // Assign the interrupt pins for the three available RPM measurements.  
 // If you are not going to use a specific RPM signal set the value to -1
 // Use standard pin numbers (2, 3, etc)
-  RPM_Pin = 2;      // For UNO and MEGA boards
+  RPM_Pin = -1 //2;      // For UNO and MEGA boards
   RPM_ESC_Pin = -1; // Would typically be 3 for UNO and MEGA boards
   RPM_Fan_Pin = -1; // Would typically be 18 for MEGA boards.  A third interrupt is not available on UNO
 
 // Assign the ESC control pin.  This is the pin to which the signal wire from your ESC servo connector is connected
-  ESC_Control_Pin = 7;
+  ESC_Control_Pin = -1 //7;
 
 // Set the Baud rate for communication over the serial port.
 // Ensure to select the matching Baud rate in SimpleThrust when initiating the serial communications through the COM port
