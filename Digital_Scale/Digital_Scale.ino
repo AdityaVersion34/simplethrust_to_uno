@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>      // LiquidCrystal_I2C library
 HX711_ADC LoadCell(4, 5);           // dt pin, sck pin
-LiquidCrystal_I2C lcd(0x3F, 16, 2); // LCD HEX address 0x27
+LiquidCrystal_I2C lcd(0x3F, 16, 2); // LCD HEX address 0x3F
 int taree = 6;
 int a = 0;
 float b = 0;
@@ -25,26 +25,26 @@ void setup()
 	LoadCell.setCalFactor(375); // Calibarate your LOAD CELL with 100g weight, and change the value according to readings
 	/////////////////////////////////////
 
-	Serial.println("load cell initialization done");
+	//Serial.println("load cell initialization done");
 
-	lcd.begin(16, 2, LCD_5x8DOTS); // begins connection to the LCD module   //original had no parameters
-
-	Serial.println("lcd.begin complete");
-
+	lcd.init();
 	lcd.backlight();             // turns on the backlight
+
+	//Serial.println("lcd.begin complete");
+
 	lcd.setCursor(1, 0);         // set cursor to first row
 	lcd.print("Digital Scale "); // print out to LCD
 	lcd.setCursor(0, 1);         // set cursor to first row
 	lcd.print(" 5KG MAX LOAD "); // print out to LCD
 
-	Serial.println("lcd initialization complete");
+	//Serial.println("lcd initialization complete");
 
 	delay(3000);
 	lcd.clear();
 }
 void loop()
 {
-	Serial.println("in loop");
+	//Serial.println("in loop");
 	lcd.setCursor(1, 0);          // set cursor to first row
 	lcd.print("Digital Scale ");  // print out to LCD
 	LoadCell.update();            // retrieves data from the load cell

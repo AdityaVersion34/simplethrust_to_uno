@@ -35,14 +35,16 @@
 
 #include <Wire.h>
 #include <HX711_ADC.h>
+#include <LiquidCrystal_I2C.h>
 
 //stores the message that will be sent to the serial monitor
 String Message = "";
 
 HX711_ADC LoadCell(4,5);    //setting up load cell configuration - Data, Sck at D4, D5
+LiquidCrystal_I2C lcd(0x3F, 16, 2); // LCD HEX address 0x3F
 int taree = 6;              //Pin location of tare button. press to tare the load cell. At D6 pin
 float currentThrust;    //will store the thrust value obtained from the arduino
-unsigned long currentThrustLong;    //stores the negatively capped unsigned long version of the current thrust
+float thrustToPrint;    //version of thrust to print to lcd
 
 int baudRate;   //the baud rate of transmission through serial port to the serial monitor
 
@@ -52,7 +54,7 @@ void setup(){
     pinMode(taree, INPUT_PULLUP);       //initialize the tare button pin
     LoadCell.begin();       //start connection to HX711
     LoadCell.start(1000);   //1000 milliseconds for load cell to stabilize
-    LoadCell.setCalFactor(1);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
+    LoadCell.setCalFactor(375);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
 
     //taree = 6;              //tare button is at D6 pin        For some reason, when taree was assigned in setup(),
                                 //load cell was continuously taring
@@ -61,6 +63,16 @@ void setup(){
 
     //initialize serial communication
     Serial.begin(baudRate);
+
+    //lcd display initialization
+	lcd.init();
+	lcd.backlight();             // turns on the backlight
+
+	lcd.setCursor(1, 0);         // set cursor to first row
+	lcd.print("Digital Scale "); // print out to LCD
+
+	delay(3000);
+	lcd.clear();
 }
 
 //arduino loop function
@@ -80,18 +92,37 @@ void loop(){
     LoadCell.update();
     currentThrust = LoadCell.getData();
   
-    // for now, going to use raw currentThrust value. Not sure if the SimpleThrust program can accept and use negative values
-    // sent from the Arduino. If negative values not possible, will cap minimum thrust value at 0 (no reverse thrust).
+    // negative thrust seems to be alright
 
-    //converting and neg. capping to ulong
-    if(currentThrust < 0){
-        currentThrust = 0;
-    }
+    lcd.setCursor(1, 0);          // set cursor to first row
+	lcd.print("Digital Scale ");  // print out to LCD
+    if (currentThrust < 0)
+	{
+		thrustToPrint = currentThrust * (-1);
+		lcd.setCursor(0, 1);
+		lcd.print("-");
+		lcd.setCursor(8, 1);
+		lcd.print("-");
+	}
+	else
+	{
+		thrustToPrint = currentThrust;
+        lcd.setCursor(0, 1);
+		lcd.print(" ");
+		lcd.setCursor(8, 1);
+		lcd.print(" ");
+	}
 
-    currentThrustLong = (long)currentThrust;
+	lcd.setCursor(1, 1); // set cursor to secon row
+	lcd.print(thrustToPrint, 1);     // print out the retrieved value to the second row
+	lcd.print("g ");
+	float z = thrustToPrint / 28.3495;
+	lcd.setCursor(9, 1);
+	lcd.print(z, 2);
+	lcd.print("oz ");
 
     //appending to message
-    Message += currentThrustLong;
+    Message += currentThrust*375; // scaling by a factor before sending to software. not sure about calibration
     Message += ",";
 
     //adding 8 more filler 0s - as per the message format
@@ -108,7 +139,9 @@ void loop(){
     // taring load cell
     if (digitalRead(taree) == LOW)
     {
-        Serial.println("   Taring...    ");
+        //Serial.println("   Taring...    ");
+        lcd.setCursor(1, 0);
+        lcd.print("    Taring...   ");
         LoadCell.start(1000);
     }
 
