@@ -31,6 +31,8 @@
 #include <Wire.h> // I2C library, required for MLX90614 - Needed for thermal sensing
 #include <SparkFunMLX90614.h> // SparkFunMLX90614 Arduino library - Needed for IR thermal sensing
 
+#include <HX711_ADC.h>
+
   Servo myESC;  // create servo object to control the ESC
   IRTherm myMotorTherm; // Create an IRTherm object  - Needed if the MLX90614 IR temp sensor is used
 
@@ -87,6 +89,15 @@
   String Message = "";
   String inString = "";
 
+// ***********************************************
+//  ADDITIONAL CODE USED TO TARE THE LOAD CELL
+// ***********************************************
+
+  HX711_ADC LoadCell(4,5);    //setting up load cell configuration - Data, Sck at D4, D5
+  int taree = 6;        //tare button is at D6 pin
+
+  float currentThrust = 0;    //will store the thrust value obtained from the arduino
+
 void setup() {
 // *******************************
 // ENTER YOUR CUSTOM SETUP HERE
@@ -96,8 +107,14 @@ void setup() {
 // If you are not going to use a specific cell, set the value to -1 
 // In this version, we are only using 6 cells  on pins A0 to A5 so the remaining Cell_Pins are set to -1
 
-//Serial.begin(9600);
+// Load Cell related initialization processes
+  pinMode (taree, INPUT_PULLUP);
+  LoadCell.begin(); // start connection to HX711
+  LoadCell.start(1000); // load cells gets 1000ms of time to stabilize
 
+  /////////////////////////////////////
+  LoadCell.setCalFactor(375); // Calibarate your LOAD CELL with 100g weight, and change the value according to readings
+  /////////////////////////////////////
 
 //not using any battery cells
   Cell_Pins[1] =  -1;
@@ -265,6 +282,8 @@ void loop() {
  
   if (Current_Pin != -1)     {Message += analogRead(Current_Pin);     Message += ",";} else {Message += 0; Message += ",";}
   
+  //old thrust measurement and output code
+  /*
   if (Thrust_Uses_HX711 == 1){
     if((Thrust_HX711_Clock_Pin != -1) && (Thrust_HX711_Data_Pin != -1)){ // In case HX711 use was flagged as true but data and clock pins were not set
        Message += GetThrustValue(Thrust_HX711_Clock_Pin,Thrust_HX711_Data_Pin);
@@ -277,6 +296,18 @@ void loop() {
   else{
   if (Thrust_Analog_Pin != -1)      {Message += analogRead(Thrust_Analog_Pin);      Message += ",";} else {Message += 0; Message += ",";}
   }
+  */
+
+  // updating load cell reading and obtaining reading from it
+  LoadCell.update();
+  currentThrust = LoadCell.getData();
+  
+  // for now, going to use raw currentThrust value. Not sure if the SimpleThrust program can accept and use negative values
+  // sent from the Arduino. If negative values not possible, will cap minimum thrust value at 0 (no reverse thrust).
+
+  //appending to message
+  Message += currentThrust;
+  Message += ",";
 
   if (Torque_Uses_HX711 == 1){
      int TempTorqueRead = 0;
@@ -323,8 +354,17 @@ void loop() {
 
   // Send the message
   Serial.println (Message);
+
+  // taring load cell
+  if (digitalRead (taree) == LOW)
+  {
+    Serial.println("   Taring...    ");
+    LoadCell.start(1000);
+  }
+
   // Clear the serial buffer
   Serial.flush();
+
   // Wait a bit...
   delay(1);
 }
@@ -378,6 +418,8 @@ void RPM_Fan_Interrupt_Single(){
 //    Oldtime2 = TempTime2;
 //}
 
+
+//unused, since the HX711_ADC library is being used instead. Leaving function in for completeness.
 unsigned long GetThrustValue(int Sent_Clock_Pin, int Sent_Data_Pin)
 {
   byte data[3];

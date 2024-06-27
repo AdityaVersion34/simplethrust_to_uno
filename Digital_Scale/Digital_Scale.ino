@@ -20,7 +20,7 @@ void setup() {
   LoadCell.setCalFactor(375); // Calibarate your LOAD CELL with 100g weight, and change the value according to readings
   /////////////////////////////////////
   
-  lcd.begin(); // begins connection to the LCD module   //original with no parameters
+  lcd.begin(10,1); // begins connection to the LCD module   //original had no parameters
   lcd.backlight(); // turns on the backlight
   lcd.setCursor(1, 0); // set cursor to first row
   lcd.print("Digital Scale "); // print out to LCD
