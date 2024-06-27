@@ -42,8 +42,9 @@ String Message = "";
 HX711_ADC LoadCell(4,5);    //setting up load cell configuration - Data, Sck at D4, D5
 int taree = 6;              //Pin location of tare button. press to tare the load cell. At D6 pin
 float currentThrust;    //will store the thrust value obtained from the arduino
+unsigned long currentThrustLong;    //stores the negatively capped unsigned long version of the current thrust
 
-int BaudRate;   //the baud rate of transmission through serial port to the serial monitor
+int baudRate;   //the baud rate of transmission through serial port to the serial monitor
 
 //arduino setup function
 void setup(){
@@ -51,15 +52,15 @@ void setup(){
     pinMode(taree, INPUT_PULLUP);       //initialize the tare button pin
     LoadCell.begin();       //start connection to HX711
     LoadCell.start(1000);   //1000 milliseconds for load cell to stabilize
-    LoadCell.setCalFactor(375);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
+    LoadCell.setCalFactor(1);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
 
     //taree = 6;              //tare button is at D6 pin        For some reason, when taree was assigned in setup(),
                                 //load cell was continuously taring
     currentThrust = 0;  
-    BaudRate = 9600;
+    baudRate = 9600;
 
     //initialize serial communication
-    Serial.begin(BaudRate);
+    Serial.begin(baudRate);
 }
 
 //arduino loop function
@@ -82,8 +83,15 @@ void loop(){
     // for now, going to use raw currentThrust value. Not sure if the SimpleThrust program can accept and use negative values
     // sent from the Arduino. If negative values not possible, will cap minimum thrust value at 0 (no reverse thrust).
 
+    //converting and neg. capping to ulong
+    if(currentThrust < 0){
+        currentThrust = 0;
+    }
+
+    currentThrustLong = (long)currentThrust;
+
     //appending to message
-    Message += currentThrust;
+    Message += currentThrustLong;
     Message += ",";
 
     //adding 8 more filler 0s - as per the message format
@@ -95,7 +103,7 @@ void loop(){
     Message += 0;
 
       // Send the message
-    Serial.println (Message);
+    Serial.println(Message);
 
     // taring load cell
     if (digitalRead(taree) == LOW)
