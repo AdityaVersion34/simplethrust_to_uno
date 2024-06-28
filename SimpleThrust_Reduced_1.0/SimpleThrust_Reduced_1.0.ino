@@ -46,6 +46,9 @@ int taree = 6;              //Pin location of tare button. press to tare the loa
 float currentThrust;    //will store the thrust value obtained from the arduino
 float thrustToPrint;    //version of thrust to print to lcd
 
+#define CALIBRATION_FACTOR 207.5        //a calibration factor used to obtain correct LCD display readings. SimpleThrust should
+                                        //be able to calibrate from this value for the software.
+
 int baudRate;   //the baud rate of transmission through serial port to the serial monitor
 
 //arduino setup function
@@ -54,7 +57,7 @@ void setup(){
     pinMode(taree, INPUT_PULLUP);       //initialize the tare button pin
     LoadCell.begin();       //start connection to HX711
     LoadCell.start(1000);   //1000 milliseconds for load cell to stabilize
-    LoadCell.setCalFactor(375);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
+    LoadCell.setCalFactor(CALIBRATION_FACTOR);     //calibration value obtained from previous scale code on the Arduino. MAY NEED TO RECALIBRATE
 
     //taree = 6;              //tare button is at D6 pin        For some reason, when taree was assigned in setup(),
                                 //load cell was continuously taring
@@ -122,7 +125,7 @@ void loop(){
 	lcd.print("oz ");
 
     //appending to message
-    Message += currentThrust*375; // scaling by a factor before sending to software. not sure about calibration
+    Message += (currentThrust*CALIBRATION_FACTOR); // scaling by a factor before sending to software. not sure about calibration
     Message += ",";
 
     //adding 8 more filler 0s - as per the message format
